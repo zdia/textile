@@ -39,7 +39,7 @@ proc textile::AddSkeleton {} {
 
 
     <LINK REV="made" HREF="mailto:">
-    <LINK REL="stylesheet" TYPE="text/css" title="Meer" HREF="my.css">
+    <LINK REL="stylesheet" TYPE="text/css" title="Titel" HREF="my.css">
   </HEAD>
 
 	<BODY>
@@ -49,7 +49,7 @@ proc textile::AddSkeleton {} {
 	.wiki insert 1.0 $header
 }
 
-proc textile::open {  } {
+proc textile::Open {  } {
 	set ::textile::filename [tk_getOpenFile]
 	set fh [open $::textile::filename "r"]
 	.wiki insert 1.0 [read $fh]
@@ -64,6 +64,9 @@ proc textile::Save {} {
 
 proc textile::SaveAs {  } {
 	set ::textile::filename [tk_getSaveFile]
+	if { $::textile::filename == "" } {
+		return
+	}
 	textile::Save
 }
 
@@ -74,9 +77,9 @@ proc textile::Export {  } {
 	
 	# Das erste Zeichen darf kein "<" wie etwa in "<strong>" sein,
 	# sonst will exec es als Umleitung interpretieren
-	# "\n" verhindert das und textile ignoriert den Zeilenvorschub
+	# " " verhindert das
 	
-	set wiki "\n[.wiki get 1.0 "end - 1 char"]"
+	set wiki " [.wiki get 1.0 "end - 1 char"]"
 	
 # unter welchem Namen speichern?
 
@@ -84,7 +87,7 @@ proc textile::Export {  } {
 	exec iceweasel "[pwd]/textile.html"
 	
 	# if {Preferences(Skeleton) == 1}
-	if {$AddSkeleton} {
+	if {0} {
 		textile::AddSkeleton
 	}
 	
@@ -114,7 +117,7 @@ proc textile::About  {  } {
 
 proc textile::Init {  } {
 	set ::textile::filename ""
-	set textile::Preferences(Skeleton) 0
+	set ::textile::Preferences(Skeleton) 0
 }
 
 proc textile::InitGUI {} {
@@ -141,7 +144,7 @@ proc textile::InitGUI {} {
 
 	set ::textile::menu_desc {
 		File	file	{"New ..." {} textile::say_hello "" ""
-								"Open ..." {} textile::open $menu_meta O
+								"Open ..." {} textile::Open $menu_meta O
 								Save save textile::Save $menu_meta S
 								"Save As ..." open textile::SaveAs "" ""
 								separator "" "" "" ""
@@ -186,8 +189,18 @@ proc textile::InitGUI {} {
 	wm protocol . WM_DELETE_WINDOW textile::Exit
 	wm title . "Textile Wiki-Markup"
 	
-	text .wiki
-	pack .wiki -fill both -expand 1
+	set text [text .wiki -relief sunken -width 80 \
+			-yscrollcommand ".vsb set"]
+
+	if {[tk windowingsystem] ne "aqua"} {
+		ttk::scrollbar .vsb -orient vertical -command ".wiki yview"
+	} else {
+		scrollbar .vsb -orient vertical -command ".wiki yview"
+	}
+
+	pack .wiki -side left -fill both -expand 1
+	pack .vsb -side right -fill y
+	
 	focus .wiki
 }
 
