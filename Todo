@@ -1,4 +1,11 @@
+Was will ich mit texile?
+
+bequem html Text eingeben
+
+TODO:
+
 automatisch ein Fileverzeichnis als HtmlCode erstellen
+vgl. index2html.tcl
 Struktur: Dateiname	Größe Datum Beschreibung
 
 Zeile: Welche Datei ist geladen? Hilfe mit Kurzbeschreibung
@@ -6,4 +13,7 @@ Zeile: Welche Datei ist geladen? Hilfe mit Kurzbeschreibung
 Lizenz
 
 About
+
+Speichern als komplette Indexseite 	ok
+
 

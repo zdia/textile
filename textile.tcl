@@ -1,3 +1,8 @@
+#!/bin/sh
+# the next line restarts using wish \
+exec tclsh8.5 "$0" ${1+"$@"}
+
+
 # man kann Text eingeben und als html-Code ausgeben
 # fertige html Seite einlesen (open) )und bearbeiten?
 # mit Header abspeichern?
@@ -12,57 +17,51 @@ package require Tk 8.5
 namespace eval textile {}
 namespace import ::msgcat::*
 
-proc say_hello {  } {
+proc say_hello {	} {
 	puts hello
 }
 
-proc textile::AddSkeleton {} {
+proc textile::AddSkeleton {htmlFile} {
 	# set head Datei um ihn anpassen zu können, speichern unter einem Namen? projekt.header
-
-	set tail "
-	</BODY>
-</HTML>"
-
-	set header {
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
-"http://www.w3.org/TR/html4/loose.dtd">
-
-<HTML>
-  <HEAD>
-
-    <TITLE>zdia.homelinux.org</TITLE>
-
-    <META NAME="Generator" CONTENT="Tcl/Tk 8.5; http://www.tcl.tk/)">
-    <META NAME="Author" CONTENT="Zbigniew Diaczyszyn">
-    <META NAME="Copyright" CONTENT="Copyright (C) Feb 07, 2010 ">
-    <META http-equiv="content-type" content="text/html; charset=utf-8">
-
-
-    <LINK REV="made" HREF="mailto:">
-    <LINK REL="stylesheet" TYPE="text/css" title="Titel" HREF="my.css">
-  </HEAD>
-
-	<BODY>
+	set header {<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" \
+	"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+	<HEAD>
+		<TITLE>zdia.homelinux.org</TITLE>
+		<META http-equiv="content-type" content="text/html; charset=utf-8">
+		<LINK REL="stylesheet" TYPE="text/css" title="Liste" HREF="list.css">
+	</HEAD>
+	<body>
 	}
 	
-	# .wiki auslesen, header einsetzen, anfügen .wiki, anfügen tail
-	.wiki insert 1.0 $header
+	set tail {
+	</body>
+</html>
+	}
+	
+	set fh [open $htmlFile r]
+	set body [read $fh]
+	close $fh
+	
+	return "$header$body$tail"
 }
 
-proc textile::Open {  } {
+proc textile::Open {	} {
 	set ::textile::filename [tk_getOpenFile]
 	set fh [open $::textile::filename "r"]
 	.wiki insert 1.0 [read $fh]
 	close $fh
 }
 
+# zur Verfügung stehen page.html und textile.html *.txl
 proc textile::Save {} {
 	set fh [ open $::textile::filename "w" ]
 	puts $fh [.wiki get 1.0 "end - 1 char"]
 	close $fh
 }
 
-proc textile::SaveAs {  } {
+# saving a txl-file
+proc textile::SaveAs {	} {
 	set ::textile::filename [tk_getSaveFile]
 	if { $::textile::filename == "" } {
 		return
@@ -70,58 +69,72 @@ proc textile::SaveAs {  } {
 	textile::Save
 }
 
-proc textile::Export {  } {
+proc textile::Export {	} {
 # Pfade überprüfen
 
 # Option beim Speichern: mit html skeleton with header?
 	
 	# Das erste Zeichen darf kein "<" wie etwa in "<strong>" sein,
 	# sonst will exec es als Umleitung interpretieren
-	# " " verhindert das
+	# " " verhindert das, aber verhindert auch h2. blabla
 	
-	set wiki " [.wiki get 1.0 "end - 1 char"]"
-	
-# unter welchem Namen speichern?
+	set wiki "[.wiki get 1.0 "end - 1 char"]"
+	# set filename [tk_getopenfile]
+	set filename "textile.html"
 
-	exec php textile.php $wiki > textile.html
-	exec iceweasel "[pwd]/textile.html"
+	exec php textile.php $wiki > $filename
 	
-	# if {Preferences(Skeleton) == 1}
-	if {0} {
-		textile::AddSkeleton
+	if {$textile::Preferences(skeleton) == 1} {
+		set page [AddSkeleton $filename]
+		set filename "page.html"
+		puts $page
+		set fh [open $filename w]
+		puts $fh $page
+		close $fh
 	}
 	
+	# exec iceweasel "[pwd]/$filename"
+	exec firefox "[pwd]/$filename"
+	
 	# textile::Saveas
-	
 }
 
-proc textile::Preferences {  } {
-	
+proc textile::Preferences {	} {
+	font configure TkFixedFont -size 18
 }
 
-proc textile::Exit {  } {
+proc textile::Exit {	} {
 	exit
 }
 
-proc textile::Help {  } {
+proc textile::Help {	} {
 	
 }
 
-proc textile::License {  } {
+proc textile::License {	} {
 	
 }
 
-proc textile::About  {  } {
+proc textile::About	{	} {
 	
 }
 
-proc textile::Init {  } {
+proc textile::Page {	} {
+	set textile::Preferences(skeleton) 1
+	textile::Export
+}
+
+proc textile::Init {	} {
+	# cd /home/dia/Projekte/git/textile
 	set ::textile::filename ""
 	set ::textile::Preferences(Skeleton) 0
 }
 
 proc textile::InitGUI {} {
-# menu: file: open, save, save as, export html; quit	display: show
+# menu: 
+# file: open, save, save as, export html; quit	
+# display: show
+# tools: ls
 
 	# set file "test.txt"
 	# set file tk_getOpendialog
@@ -149,6 +162,7 @@ proc textile::InitGUI {} {
 								"Save As ..." open textile::SaveAs "" ""
 								separator "" "" "" ""
 								"Export ..." open textile::Export $menu_meta "E"
+								"Export as Page" "" textile::Page "" ""
 								separator "" "" "" ""
 								"Preferences ..." {} textile::Preferences "" ""
 								separator "" "" "" ""
@@ -190,7 +204,8 @@ proc textile::InitGUI {} {
 	wm title . "Textile Wiki-Markup"
 	
 	set text [text .wiki -relief sunken -width 80 \
-			-yscrollcommand ".vsb set"]
+			-yscrollcommand ".vsb set" \
+      -wrap word]
 
 	if {[tk windowingsystem] ne "aqua"} {
 		ttk::scrollbar .vsb -orient vertical -command ".wiki yview"
@@ -217,5 +232,5 @@ textile::InitGUI
 
 
 
-    # <LINK REL="alternate stylesheet" TYPE="text/css" title="Sonne" HREF="sonne.css">
-    # <LINK REL="alternate stylesheet" TYPE="text/css" title="baum" HREF="baum.css">
+		# <LINK REL="alternate stylesheet" TYPE="text/css" title="Sonne" HREF="sonne.css">
+		# <LINK REL="alternate stylesheet" TYPE="text/css" title="baum" HREF="baum.css">
