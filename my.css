@@ -1,0 +1,27 @@
+body {
+	text-align: center;
+	font-family: Helvetica,Arial,sans-serif;
+	font-size: 0.9em; background-color: #E6E6FA;
+}
+
+body, div, ul, li { padding: 0; border: 0; margin: 0; color: red}
+
+div#Inhalt {
+	width: 700px;
+	text-align: left;
+	margin-left: auto;
+	margin-right: auto;
+	background-color: #ADD8E6;
+	padding: 10pt;
+}
+
+div#Inhalt ul {
+	list-style: none;
+	margin: 0; padding: 1em; 
+	margin-top: 2em;
+	color: green;
+	
+}
+div#Inhalt a:hover {
+    color: black; background-color: #E6E6FA;
+}
