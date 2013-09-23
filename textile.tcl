@@ -207,7 +207,8 @@ proc textile::InitGUI {} {
 	wm title . "Textile Wiki-Markup"
 	
 	set text [text .wiki -relief sunken -width 80 \
-			-yscrollcommand ".vsb set"]
+			-yscrollcommand ".vsb set" \
+      -wrap word]
 
 	if {[tk windowingsystem] ne "aqua"} {
 		ttk::scrollbar .vsb -orient vertical -command ".wiki yview"
