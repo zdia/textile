@@ -17,3 +17,7 @@ About
 Speichern als komplette Indexseite 	ok
 
 
+Programm hat Menüpunkt: Syntax highlighting
+
+ClassTextile.php in Tcl umschreiben, Wiki-Anweisungen müssen für das Syntax-
+Highlighting eh geparst werden. Das Text-Widget erlaubt alle möglichen Formatierungen.
