@@ -13,8 +13,12 @@ exec tclsh8.5 "$0" ${1+"$@"}
 # oder explizit als html exportieren mit Option "Webseite"
 
 #Todo:
-# We need php
-# which browser?
+# Check existence of php
+# Define browser?
+# Remember last files
+# Default directory
+# Syntax highlighting?
+# Write Tcl Textile textile::Parser?
 
 package require Tk 8.5
 
@@ -73,7 +77,7 @@ proc textile::SaveAs {	} {
 	textile::Save
 }
 
-proc textile::Export {	} {
+proc textile::Create {	} {
 # Pfade überprüfen
 
 # Option beim Speichern: mit html skeleton with header?
@@ -124,13 +128,32 @@ proc textile::About	{	} {
 
 proc textile::Page {	} {
 	set textile::Preferences(skeleton) 1
-	textile::Export
+	textile::Create
 }
 
 proc textile::Init {	} {
 	# cd /home/dia/Projekte/git/textile
 	set ::textile::filename ""
 	set ::textile::Preferences(Skeleton) 0
+  set textile::spaceOld "1.0"
+}
+
+proc textile::IsMarkup { word } {
+	# search the dict
+	return 1
+}
+  
+proc textile::Parse { key } {
+    # space = 65
+    if { $key == 65 } {
+      set spaceNew [.wiki index insert]
+      puts "word = [.wiki get $textile::spaceOld $spaceNew]"
+      set markup [ textile::IsMarkup]
+      # if {$markup} {
+        # tag the markup
+      # }
+      set textile::spaceOld $spaceNew
+    }
 }
 
 proc textile::InitGUI {} {
@@ -164,8 +187,8 @@ proc textile::InitGUI {} {
 								Save save textile::Save $menu_meta S
 								"Save As ..." open textile::SaveAs "" ""
 								separator "" "" "" ""
-								"Export ..." open textile::Export $menu_meta "E"
-								"Export as Page" "" textile::Page "" ""
+								"Create ..." open textile::Create $menu_meta "E"
+								"Create as Page" "" textile::Page "" ""
 								separator "" "" "" ""
 								"Preferences ..." {} textile::Preferences "" ""
 								separator "" "" "" ""
@@ -210,6 +233,8 @@ proc textile::InitGUI {} {
 			-yscrollcommand ".vsb set" \
       -wrap word]
 
+  bind . <KeyPress> { textile::Parse %k }
+  
 	if {[tk windowingsystem] ne "aqua"} {
 		ttk::scrollbar .vsb -orient vertical -command ".wiki yview"
 	} else {
