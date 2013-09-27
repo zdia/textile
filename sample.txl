@@ -1,9 +1,10 @@
-This project intends to use Tcl/Tk to glue the Textile markup language (v2.0.0) with an Tk text widget (Tk 8.5). A menu will allow to send output to a browser (tested with Firefox 3.5.2).
-Textile is a wiki markup language *implemented* in Textpattern and it is very convenient in use. Just for personal documentation purposes it is not necessary to use a whole CMS. 
+p. This project intends to use Tcl/Tk to glue the Textile markup language (v2.0.0) with an Tk text widget (Tk 8.5). A menu will allow to send output to a browser (tested with Firefox 3.5.2).
 
-So we take an simple text editor and enable it to produce Html Code. A browser will present immediately the web page. Tcl will glue all the well tested parts together.
+p. Textile is a wiki markup language *implemented* in Textpattern and it is very convenient in use. Just for personal documentation purposes it is not necessary to use a whole CMS. 
 
-Sample formattings taken from "http://www.textism.com/tools/textile/index.php":http://www.textism.com/tools/textile/index.php:
+p. So we take an simple text editor and enable it to produce Html Code. A browser will present immediately the web page. Tcl will glue all the well tested parts together.
+
+p. Sample formattings taken from "http://www.textism.com/tools/textile/index.php":http://www.textism.com/tools/textile/index.php:
 
 This is *bold* and _italic_ text
 
@@ -61,6 +62,7 @@ So you see, my friends:
 * The time is not later
 * The time is not yesterday
 * We must act
+
 
 
 

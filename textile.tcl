@@ -96,7 +96,7 @@ proc textile::Create {	} {
 		set page [AddSkeleton $filename]
 		set filename "page.html"
 		puts $page
-		set fh [open $filename w]
+		set fh [open $filename w+]
 		puts $fh $page
 		close $fh
 	}
@@ -135,10 +135,16 @@ proc textile::Init {	} {
 	# cd /home/dia/Projekte/git/textile
 	set ::textile::filename ""
 	set ::textile::Preferences(Skeleton) 0
-  set textile::spaceOld "1.0"
+  set ::spaceOld "1.0"
+  set ::markupList [dict create {h3.} blue]
 }
 
 proc textile::IsMarkup { word } {
+	puts [dict get $::markupList]
+	if {[catch {dict get $::markupList $word} oops] } {
+		puts $oops
+		return 0
+	}
 	# search the dict
 	return 1
 }
@@ -147,12 +153,12 @@ proc textile::Parse { key } {
     # space = 65
     if { $key == 65 } {
       set spaceNew [.wiki index insert]
-      puts "word = [.wiki get $textile::spaceOld $spaceNew]"
-      set markup [ textile::IsMarkup]
-      # if {$markup} {
-        # tag the markup
-      # }
-      set textile::spaceOld $spaceNew
+			set word [string trim [.wiki get $::spaceOld $spaceNew]]
+
+      if { [textile::IsMarkup $word] } {
+        .wiki tag add blue $::spaceOld $spaceNew
+      }
+      set ::spaceOld $spaceNew
     }
 }
 
@@ -187,8 +193,8 @@ proc textile::InitGUI {} {
 								Save save textile::Save $menu_meta S
 								"Save As ..." open textile::SaveAs "" ""
 								separator "" "" "" ""
-								"Create ..." open textile::Create $menu_meta "E"
-								"Create as Page" "" textile::Page "" ""
+								"Create Html ..." open textile::Create $menu_meta "E"
+								"Create Html" "" textile::Page $menu_meta "H"
 								separator "" "" "" ""
 								"Preferences ..." {} textile::Preferences "" ""
 								separator "" "" "" ""
@@ -231,8 +237,12 @@ proc textile::InitGUI {} {
 	
 	set text [text .wiki -relief sunken -width 80 \
 			-yscrollcommand ".vsb set" \
+			-width 160 \
+			-height 60 \
       -wrap word]
-
+      
+	.wiki tag configure blue -foreground blue
+	
   bind . <KeyPress> { textile::Parse %k }
   
 	if {[tk windowingsystem] ne "aqua"} {
