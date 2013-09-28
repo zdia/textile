@@ -17,8 +17,10 @@ exec tclsh8.5 "$0" ${1+"$@"}
 # Define browser?
 # Remember last files
 # Default directory
-# Syntax highlighting?
 # Write Tcl Textile textile::Parser?
+
+# Syntax Highlighting will be done in line-word-order at startup time and
+# when refreshing is desired
 
 package require Tk 8.5
 
@@ -37,7 +39,7 @@ proc textile::AddSkeleton {htmlFile} {
 	<HEAD>
 		<TITLE>zdia.homelinux.org</TITLE>
 		<META http-equiv="content-type" content="text/html; charset=utf-8">
-		<LINK REL="stylesheet" TYPE="text/css" title="Liste" HREF="list.css">
+		<LINK REL="stylesheet" TYPE="text/css" title="Liste" HREF="my.css">
 	</HEAD>
 	<body>
 	}
@@ -54,11 +56,12 @@ proc textile::AddSkeleton {htmlFile} {
 	return "$header$body$tail"
 }
 
-proc textile::Open {	} {
-	set ::textile::filename [tk_getOpenFile]
+proc textile::OpenFile { } {
+	if { $::textile::filename eq "" } { set ::textile::filename [tk_getOpenFile]	} 
 	set fh [open $::textile::filename "r"]
 	.wiki insert 1.0 [read $fh]
 	close $fh
+	
 }
 
 # zur Verfügung stehen page.html und textile.html *.txl
@@ -91,7 +94,7 @@ proc textile::Create {	} {
 	set filename "textile.html"
 
 	exec php textile.php $wiki > $filename
-	
+puts "done"	
 	if {$textile::Preferences(skeleton) == 1} {
 		set page [AddSkeleton $filename]
 		set filename "page.html"
@@ -101,7 +104,7 @@ proc textile::Create {	} {
 		close $fh
 	}
 	
-	exec firefox "[pwd]/$filename"
+	# exec firefox "/home/dia/Projekte/git/textile/page.html"
 	
 	# textile::Saveas
 }
@@ -133,20 +136,20 @@ proc textile::Page {	} {
 
 proc textile::Init {	} {
 	# cd /home/dia/Projekte/git/textile
-	set ::textile::filename ""
+	set ::textile::filename [lindex $::argv 0]
 	set ::textile::Preferences(Skeleton) 0
   set ::spaceOld "1.0"
-  set ::markupList [dict create {h3.} blue]
+  set ::markupList [dict create h3. blue]
 }
 
 proc textile::IsMarkup { word } {
 	puts [dict get $::markupList]
-	if {[catch {dict get $::markupList $word} oops] } {
+	if { [catch {set tag [dict get $::markupList $word] } oops] } {
 		puts $oops
-		return 0
+		return ""
 	}
 	# search the dict
-	return 1
+	return $tag
 }
   
 proc textile::Parse { key } {
@@ -155,14 +158,17 @@ proc textile::Parse { key } {
       set spaceNew [.wiki index insert]
 			set word [string trim [.wiki get $::spaceOld $spaceNew]]
 
-      if { [textile::IsMarkup $word] } {
-        .wiki tag add blue $::spaceOld $spaceNew
+      set tag [textile::IsMarkup $word]
+      if { $tag ne "" } {
+				# highlight
+        .wiki tag add $tag $::spaceOld $spaceNew
+        # create html output ... ?
       }
       set ::spaceOld $spaceNew
     }
 }
 
-proc textile::InitGUI {} {
+proc textile::InitGUI { {filename ""} } {
 # menu: 
 # file: open, save, save as, export html; quit	
 # display: show
@@ -189,7 +195,7 @@ proc textile::InitGUI {} {
 
 	set ::textile::menu_desc {
 		File	file	{"New ..." {} textile::say_hello "" ""
-								"Open ..." {} textile::Open $menu_meta O
+								"Open ..." {} textile::OpenFile $menu_meta O
 								Save save textile::Save $menu_meta S
 								"Save As ..." open textile::SaveAs "" ""
 								separator "" "" "" ""
@@ -241,9 +247,9 @@ proc textile::InitGUI {} {
 			-height 60 \
       -wrap word]
       
-	.wiki tag configure blue -foreground blue
+	.wiki tag configure blue -foreground blue -font {TkFixedFont 10 bold}
 	
-  bind . <KeyPress> { textile::Parse %k }
+  # bind . <KeyPress> { textile::Parse %k }
   
 	if {[tk windowingsystem] ne "aqua"} {
 		ttk::scrollbar .vsb -orient vertical -command ".wiki yview"
@@ -254,6 +260,8 @@ proc textile::InitGUI {} {
 	pack .wiki -side left -fill both -expand 1
 	pack .vsb -side right -fill y
 	
+	textile::OpenFile
+	
 	focus .wiki
 }
 
@@ -262,13 +270,9 @@ proc textile::InitGUI {} {
 # --------------------------------------------
 
 textile::Init
-textile::InitGUI
+textile::InitGUI 
 
 
 
-#bindings etc
-
-
-
-		# <LINK REL="alternate stylesheet" TYPE="text/css" title="Sonne" HREF="sonne.css">
-		# <LINK REL="alternate stylesheet" TYPE="text/css" title="baum" HREF="baum.css">
+# <LINK REL="alternate stylesheet" TYPE="text/css" title="Sonne" HREF="sonne.css">
+# <LINK REL="alternate stylesheet" TYPE="text/css" title="baum" HREF="baum.css">
