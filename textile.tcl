@@ -12,12 +12,16 @@ exec tclsh8.5 "$0" ${1+"$@"}
 # und als textile bearbeiten
 # oder explizit als html exportieren mit Option "Webseite"
 
-#Todo:
+# TODO:
 # Check existence of php
 # Define browser?
 # Remember last files
 # Default directory
 # Write Tcl Textile textile::Parser?
+# Add myPattern
+
+# Im Arbeitsverzeichnis git/textile/homepage liegen die .txl Dateien \
+für die Homepage, die erzeugten Html-Formate liegen in git/homepage
 
 # Syntax Highlighting will be done in line-word-order at startup time and
 # when refreshing is desired
@@ -31,33 +35,50 @@ proc say_hello {	} {
 	puts hello
 }
 
-proc textile::AddSkeleton {htmlFile} {
-	# set head Datei um ihn anpassen zu können, speichern unter einem Namen? projekt.header
-	set header {<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" \
-	"http://www.w3.org/TR/html4/loose.dtd">
+proc textile::Init {	} {
+
+	set ::textile::filename [lindex $::argv 0]
+	set ::textile::DestinationDir /home/dia/Projekte/git/homepage/
+	set ::textile::workingDir /home/dia/Projekte/git/textile/
+	set ::textile::Preferences(Skeleton) 0
+	set ::textile::css meer.css
+	
+	set ::textile::header \
+{<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
 	<HEAD>
 		<TITLE>zdia.homelinux.org</TITLE>
 		<META http-equiv="content-type" content="text/html; charset=utf-8">
-		<LINK REL="stylesheet" TYPE="text/css" title="Liste" HREF="my.css">
+		<LINK REL="stylesheet" TYPE="text/css" title="Liste" HREF=}
+		
+	append textile::header $::textile::css
+	append textile::header {>
 	</HEAD>
 	<body>
 	}
 	
-	set tail {
-	</body>
+	set ::textile::tail \
+	{</body>
 </html>
 	}
+  set ::spaceOld "1.0"
+  set ::markupList [dict create h3. blue]
+}
+
+proc textile::AddSkeleton { htmlFile } {
 	
 	set fh [open $htmlFile r]
 	set body [read $fh]
 	close $fh
 	
-	return "$header$body$tail"
+	return "$::textile::header$body$::textile::tail"
 }
 
 proc textile::OpenFile { } {
-	if { $::textile::filename eq "" } { set ::textile::filename [tk_getOpenFile]	} 
+	if { $::textile::filename eq "" } { set ::textile::filename [tk_getOpenFile] }
+	
+	wm title . $::textile::filename
+	
 	set fh [open $::textile::filename "r"]
 	.wiki insert 1.0 [read $fh]
 	close $fh
@@ -80,33 +101,28 @@ proc textile::SaveAs {	} {
 	textile::Save
 }
 
-proc textile::Create {	} {
-# Pfade überprüfen
+proc textile::CreateHtmlPage {	} {
 
 # Option beim Speichern: mit html skeleton with header?
 	
-	# Das erste Zeichen darf kein "<" wie etwa in "<strong>" sein,
-	# sonst will exec es als Umleitung interpretieren
-	# " " verhindert das, aber verhindert auch h2. blabla
+	set wiki [.wiki get 1.0 "end - 1 char"]
 	
-	set wiki "[.wiki get 1.0 "end - 1 char"]"
-	# set filename [tk_getopenfile]
-	set filename "textile.html"
+	# <html> etc wird von exec als File-Umleitung interpretiert
+	# textile.php muss daher aus Datei ::textile::filename einlesen
+	# textile.php speichert output als textile.html
+	exec php textile.php $::textile::filename
 
-	exec php textile.php $wiki > $filename
-puts "done"	
-	if {$textile::Preferences(skeleton) == 1} {
-		set page [AddSkeleton $filename]
-		set filename "page.html"
-		puts $page
-		set fh [open $filename w+]
-		puts $fh $page
-		close $fh
-	}
+	set htmlPage [AddSkeleton textile.html]
+	# puts $htmlPage
+	set filename [ file join $::textile::DestinationDir "[file rootname $textile::filename].html" ]
+	set fh [open $filename w+]
+	puts $fh $htmlPage
+	close $fh
 	
-	# exec firefox "/home/dia/Projekte/git/textile/page.html"
+	# exec firefox $filename
 	
 	# textile::Saveas
+	
 }
 
 proc textile::Preferences {	} {
@@ -131,15 +147,7 @@ proc textile::About	{	} {
 
 proc textile::Page {	} {
 	set textile::Preferences(skeleton) 1
-	textile::Create
-}
-
-proc textile::Init {	} {
-	# cd /home/dia/Projekte/git/textile
-	set ::textile::filename [lindex $::argv 0]
-	set ::textile::Preferences(Skeleton) 0
-  set ::spaceOld "1.0"
-  set ::markupList [dict create h3. blue]
+	textile::CreateHtmlPage
 }
 
 proc textile::IsMarkup { word } {
@@ -199,7 +207,7 @@ proc textile::InitGUI { {filename ""} } {
 								Save save textile::Save $menu_meta S
 								"Save As ..." open textile::SaveAs "" ""
 								separator "" "" "" ""
-								"Create Html ..." open textile::Create $menu_meta "E"
+								"Create Html ..." open textile::CreateHtmlPage $menu_meta "E"
 								"Create Html" "" textile::Page $menu_meta "H"
 								separator "" "" "" ""
 								"Preferences ..." {} textile::Preferences "" ""
@@ -250,6 +258,7 @@ proc textile::InitGUI { {filename ""} } {
 	.wiki tag configure blue -foreground blue -font {TkFixedFont 10 bold}
 	
   # bind . <KeyPress> { textile::Parse %k }
+  bind .wiki <Control-H> textile::CreateHtmlPage
   
 	if {[tk windowingsystem] ne "aqua"} {
 		ttk::scrollbar .vsb -orient vertical -command ".wiki yview"
