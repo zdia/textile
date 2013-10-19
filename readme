@@ -1,5 +1,10 @@
-This project intends to glue the Textile markup language (v2.0.0) with an Tk text widget (Tk 8.5) and a browser (tested with Firefox 3.5.2) with Tcl (Tools Command Language).
+This project intends to glue the Textile markup language (v2.0.0) with an Tk text widget (Tk 8.5) in order to create Html code.
 
-Textile is implemented in Textpattern and is very convenient in use. But is not necessary just for personal documentation purposes to use a whole CMS. So we take an simple text editor and enable it to produce Html Code. A browser will present immediately the web page. Tcl will glue all the well tested parts together.
+Textile is implemented in Textpattern and is very convenient in use. But is not necessary just for personal website to use a complete CMS. So we take an simple text editor and enable it to produce Html Code. A browser will present immediately the web page. Tcl will glue all the well tested parts together.
 
+Why Textile? Compared to Markdown it is able to integrate Html and CSS code smoothly, e.g.
 
+p(myClass). This is text.
+p(#myId). This is text
+
+The source can be found in http://textpattern.googlecode.com/svn/development/4.x/textpattern/lib/classTextile.php

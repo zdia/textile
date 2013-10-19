@@ -38,10 +38,10 @@ proc say_hello {	} {
 proc textile::Init {	} {
 
 	set ::textile::filename [lindex $::argv 0]
-	set ::textile::DestinationDir /home/dia/Projekte/git/homepage/
+	set ::textile::DestinationDir /home/dia/Projekte/git/homepage/Kultur
 	set ::textile::workingDir /home/dia/Projekte/git/textile/
 	set ::textile::Preferences(Skeleton) 0
-	set ::textile::css meer.css
+	set ::textile::css "../meer.css"
 	
 	set ::textile::header \
 {<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
@@ -118,8 +118,9 @@ proc textile::CreateHtmlPage {	} {
 	set fh [open $filename w+]
 	puts $fh $htmlPage
 	close $fh
-	
-	# exec firefox $filename
+
+	puts "HTML: $filename\nCSS : $::textile::css"	
+	exec firefox $filename
 	
 	# textile::Saveas
 	
