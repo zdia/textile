@@ -2,7 +2,11 @@
 # the next line restarts using wish \
 exec tclsh8.5 "$0" ${1+"$@"}
 
+Reines commandline tool:
 
+txl2html.tcl file
+# txl2html-gui.tcl
+# 
 # man kann Text eingeben und als html-Code ausgeben
 # fertige html Seite einlesen (open) )und bearbeiten?
 # mit Header abspeichern?
@@ -19,6 +23,10 @@ exec tclsh8.5 "$0" ${1+"$@"}
 # Default directory
 # Write Tcl Textile textile::Parser?
 # Add myPattern
+#
+# Reine command-line Version:
+# config wie css-Pfad in txl2html.cfg speichern
+#
 
 # Im Arbeitsverzeichnis git/textile/homepage liegen die .txl Dateien \
 für die Homepage, die erzeugten Html-Formate liegen in git/homepage
@@ -38,8 +46,10 @@ proc say_hello {	} {
 proc textile::Init {	} {
 
 	set ::textile::filename [lindex $::argv 0]
-	set ::textile::DestinationDir /home/dia/Projekte/git/homepage/Kultur
-	set ::textile::workingDir /home/dia/Projekte/git/textile/
+	set ::textile::DestinationDir /home/dia/Projekte/git/homepage/deploy/Kultur
+	set ::textile::workingDir /home/dia/Projekte/git/homepage/build/Kultur
+	set ::textile::filename [file join $::textile::workingDir $::textile::filename]
+puts $::textile::filename
 	set ::textile::Preferences(Skeleton) 0
 	set ::textile::css "../meer.css"
 	
@@ -114,13 +124,20 @@ proc textile::CreateHtmlPage {	} {
 
 	set htmlPage [AddSkeleton textile.html]
 	# puts $htmlPage
-	set filename [ file join $::textile::DestinationDir "[file rootname $textile::filename].html" ]
+	set filename [ file join $::textile::workingDir textile.html ]
+	puts $filename
 	set fh [open $filename w+]
 	puts $fh $htmlPage
 	close $fh
 
-	puts "HTML: $filename\nCSS : $::textile::css"	
-	exec firefox $filename
+	puts "HTML: $filename\nCSS : $::textile::css\n[file rootname $::textile::filename]"	
+	
+	# cd $::textile::DestinationDir
+	set deployName [file join $::textile::DestinationDir "[file rootname [file tail $::textile::filename] ].html"]
+	puts "deploy: $deployName"
+	
+	file copy -force $filename $deployName
+	exec firefox $deployName
 	
 	# textile::Saveas
 	
